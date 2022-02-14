@@ -2,21 +2,22 @@
 
 namespace App\Http\Requests;
 
-use App\Models\User;
-use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use App\Models\User;
+use Illuminate\Contracts\Validation\Validator;;
 use Illuminate\Validation\ValidationException;
 
-class DeleteInventoryRequest extends FormRequest
+class InventoryIdRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
      *
+     * @param User $user
      * @return bool
      */
     public function authorize(User $user)
     {
-        if (auth()->user()->role == $user->getAdminRole()) {
+        if (auth()->user()) {
             return true;
         }
         return false;

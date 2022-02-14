@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException;
 
 class StoreUserRequest extends FormRequest
 {
@@ -39,10 +39,11 @@ class StoreUserRequest extends FormRequest
      */
     public function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'status'   => 'error',
-            'message' => 'Duplicate error',
-            'data' => $validator->errors()
-        ], 400));
+        $response = response()->json([
+            'error' => 'Validation error',
+            'message' => $validator->errors()
+        ], 400);
+
+        throw (new ValidationException($validator, $response))->errorBag($this->errorBag);
     }
 }

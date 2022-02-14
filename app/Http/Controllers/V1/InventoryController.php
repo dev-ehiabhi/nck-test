@@ -4,9 +4,10 @@ namespace App\Http\Controllers\V1;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\DeleteInventoryRequest;
+use App\Http\Requests\InventoryIdRequest;
+use App\Http\Requests\ValidateInventoryIdRequest;
 use App\Http\Requests\InventoryRequest;
 use App\Http\Requests\UpdateInventoryRequest;
-use App\Models\Inventory;
 use App\Models\User;
 use App\Services\InventoryService;
 use Illuminate\Http\Request;
@@ -14,14 +15,16 @@ use Illuminate\Http\Request;
 class InventoryController extends Controller
 {
     private $inventoryService;
+    private $user;
 
     /**
      * InventoryController constructor.
      * @param InventoryService $inventoryService
      */
-    public function __construct(InventoryService $inventoryService)
+    public function __construct(InventoryService $inventoryService, User $user)
     {
         $this->inventoryService = $inventoryService;
+        $this->user = $user;
     }
 
     /**
@@ -29,7 +32,7 @@ class InventoryController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index(User $user)
+    public function index()
     {
         try {
             $inventories = $this->inventoryService->getInventories();
@@ -40,7 +43,7 @@ class InventoryController extends Controller
             ], 500);
         }
 
-        if (auth()->user()->role == $user->getAdminRole()) {
+        if (auth()->user()->role == $this->user->getAdminRole()) {
             return response()->json([
                 'inventories' => $inventories
             ], 200);
@@ -77,14 +80,14 @@ class InventoryController extends Controller
     /**
      * Display the specified resource.
      *
+     * @param ValidateInventoryIdRequest $id
      * @param User $user
-     * @param \App\Models\Inventory $inventory
      * @return \Illuminate\Http\Response
      */
-    public function show(User $user, $inventory)
+    public function show(InventoryIdRequest $request)
     {
         try {
-            $inventory = $this->inventoryService->getOneInventory($inventory);
+            $inventory = $this->inventoryService->getOneInventory($request->id);
         } catch (\Exception $exception) {
             return response()->json([
                 'message' => 'An error occurred...',
@@ -92,7 +95,7 @@ class InventoryController extends Controller
             ], 500);
         }
 
-        if (auth()->user()->role == $user->getAdminRole()) {
+        if (auth()->user()->role == $this->user->getAdminRole()) {
             return response()->json([
                 'inventory' => $inventory
             ], 200);
@@ -135,8 +138,7 @@ class InventoryController extends Controller
     /**
      * Remove the specified resource from storage.
      *
-     * @param DeleteInventoryRequest $request
-     * @param \App\Models\Inventory $inventory
+     * @param DeleteInventoryRequest $id
      * @return void
      */
     public function destroy(DeleteInventoryRequest $request)

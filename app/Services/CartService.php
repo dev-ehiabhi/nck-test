@@ -24,6 +24,8 @@ class CartService {
      */
     public function storeCart($request)
     {
+        $declined = [];
+
         foreach ($request->cart as $req) {
             $data = [
                 'user_id' => auth()->user()->id,
@@ -31,12 +33,18 @@ class CartService {
                 'quantity' => $req['quantity']
             ];
 
-            $this->crudInterface->store($this->cartModel, $data);
+            if (Inventory::where('id', $req['inventory_id'])->where('quantity', '>=', $req['quantity'])->exists()) {
+                $this->crudInterface->store($this->cartModel, $data);
 
-            $this->updateInventory($req['inventory_id'], $req['quantity']);
+                $this->updateInventory($req['inventory_id'], $req['quantity']);
+            } else {
+                array_push($declined, $data);
+            }
 
         }
-
+        if ($declined) {
+            return ['declined' => $declined];
+        }
         return true;
     }
 
@@ -49,6 +57,5 @@ class CartService {
     {
         return Inventory::where('id', $inventory_id)->decrement('quantity', $quantity);
     }
-
 
 }

@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use App\Models\User;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
-use Illuminate\Http\Exceptions\HttpResponseException;
+use Illuminate\Validation\ValidationException;
 
 class UpdateInventoryRequest extends FormRequest
 {
@@ -22,6 +22,14 @@ class UpdateInventoryRequest extends FormRequest
         }
 
         return false;
+    }
+
+    /**
+     *
+     */
+    protected function prepareForValidation()
+    {
+        $this->merge(['id' => $this->route('id')]);
     }
 
     /**
@@ -44,13 +52,15 @@ class UpdateInventoryRequest extends FormRequest
      *
      * @param Validator $validator
      * @return void
+     * @throws ValidationException
      */
     public function failedValidation(Validator $validator)
     {
-        throw new HttpResponseException(response()->json([
-            'status'   => 'error',
-            'message' => 'Duplicate error',
-            'data' => $validator->errors()
-        ], 400));
+        $response = response()->json([
+            'error' => 'Validation error',
+            'message' => $validator->errors()
+        ], 400);
+
+        throw (new ValidationException($validator, $response))->errorBag($this->errorBag);
     }
 }

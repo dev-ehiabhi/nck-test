@@ -32,14 +32,16 @@ class CartController extends Controller
             ], 500);
         }
 
-        if ($cart) {
+        if (gettype($cart) == 'boolean') {
             return response()->json([
                 'message' => 'Add to cart successfully!',
             ], 201);
         }
 
         return response()->json([
-            'error' => 'Unable to add to cart...',
+            'error' => 'Unable to add to the following to cart...',
+            'message' => 'Reduce the quantity and try again.',
+            'data' => $cart
         ], 500);
     }
 }

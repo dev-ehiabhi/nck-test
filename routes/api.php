@@ -18,17 +18,23 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::group(['middleware' => 'api'], function($router) {
-    Route::post('/register', [JwtAuthController::class, 'register']);
-    Route::post('/login', [JwtAuthController::class, 'login']);
-    Route::post('/logout', [JwtAuthController::class, 'logout']);
+    Route::post('/register', [JwtAuthController::class, 'register'])->middleware(['guest']);
+    Route::post('/login', [JwtAuthController::class, 'login'])->middleware(['guest'])->name('login');
+    Route::post('/logout', [JwtAuthController::class, 'logout'])->middleware(['auth']);
 
-    Route::get('/inventories', [InventoryController::class, 'index']);
-    Route::get('/inventories/{id}', [InventoryController::class, 'show']);
-    Route::post('/inventories', [InventoryController::class, 'store']);
-    Route::put('/inventories', [InventoryController::class, 'update']);
-    Route::delete('/inventories', [InventoryController::class, 'destroy']);
+    Route::get('/inventories', [InventoryController::class, 'index'])->middleware(['auth']);
+    Route::get('/inventories/{id}', [InventoryController::class, 'show'])->middleware(['auth']);
+    Route::post('/inventories', [InventoryController::class, 'store'])->middleware(['auth']);
+    Route::put('/inventories/{id}', [InventoryController::class, 'update'])->middleware(['auth']);
+    Route::delete('/inventories/{id}', [InventoryController::class, 'destroy'])->middleware(['auth']);
 
-    Route::post('/carts', [CartController::class, 'store']);
+    Route::post('/carts', [CartController::class, 'store'])->middleware(['auth']);
+
+    Route::get('/error', function(){
+        return response()->json([
+            'error' => 'Authentication error'
+        ], 400);
+    })->name('error');
 });
 
 
